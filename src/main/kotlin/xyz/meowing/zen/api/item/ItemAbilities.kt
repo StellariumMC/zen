@@ -23,11 +23,14 @@ import xyz.meowing.zen.utils.SimpleTimeMark
 import xyz.meowing.zen.utils.TickUtils
 import xyz.meowing.zen.utils.TimeUtils
 import xyz.meowing.zen.utils.TimeUtils.millis
+import java.util.concurrent.ConcurrentHashMap
 
 @Module
 object ItemAbility {
     private val cooldowns = hashMapOf<String, CooldownItem>()
-    private val activeCooldowns = hashMapOf<String, Double>()
+    private val activeCooldowns = ConcurrentHashMap<String, Double>()
+    private var lastCooldownValues = ConcurrentHashMap<String, Double>()
+    private var lastUpdateTimestamp: Long = 0L
     private var justUsedAbility: ItemAbility? = null
     private var cooldownReduction = -1
     private var lastAbilityType: String? = null
@@ -53,6 +56,10 @@ object ItemAbility {
         TickUtils.loop(10) {
             val player = player ?: return@loop
             world ?: return@loop
+
+            lastCooldownValues.clear()
+            lastCooldownValues.putAll(activeCooldowns)
+            lastUpdateTimestamp = System.currentTimeMillis()
 
             activeCooldowns.replaceAll { _, cooldown -> updateCooldown(cooldown) }
             activeCooldowns.entries.removeIf { it.value <= 0 }
@@ -82,11 +89,18 @@ object ItemAbility {
                 else -> null
             } ?: return@register
 
+            val remainingCooldown = activeCooldowns[ability.abilityName]
+            if (remainingCooldown != null && remainingCooldown > 0.0) {
+                return@register
+            }
+
             if (ability.manaCost > PlayerStats.mana) return@register
 
             EventBus.post(SkyblockEvent.ItemAbilityUsed(ability))
             justUsedAbility = ability
             activeCooldowns[ability.abilityName] = ability.cooldownSeconds
+            lastCooldownValues[ability.abilityName] = ability.cooldownSeconds
+            lastUpdateTimestamp = System.currentTimeMillis()
         }
 
         EventBus.register<ChatEvent.Receive> { event ->
@@ -183,7 +197,7 @@ object ItemAbility {
     }
 
     private fun updateCooldown(cooldownCount: Double): Double {
-        var secondsToAdd = 0.05
+        var secondsToAdd = 0.5
 
         if (
             SkyBlockIsland.THE_CATACOMBS.inIsland() &&
@@ -197,5 +211,21 @@ object ItemAbility {
         if (cooldownReduction != -1) secondsToAdd *= (100.0 + cooldownReduction) / cooldownReduction
 
         return cooldownCount - secondsToAdd
+    }
+
+    fun getRemaining(abilityName: String): Double {
+        val lastAccurateTime = lastCooldownValues.entries
+            .firstOrNull { it.key.contains(abilityName, ignoreCase = true) }
+            ?.value ?: 0.0
+        if (lastAccurateTime <= 0.0) return 0.0
+
+        val timeSinceLastUpdate = (System.currentTimeMillis() - lastUpdateTimestamp) / 1000.0
+        val interpolatedTime = lastAccurateTime - timeSinceLastUpdate
+
+        if (interpolatedTime < 0.0) {
+            return activeCooldowns[abilityName]?.takeIf { it > 0.0 } ?: 0.0
+        }
+
+        return interpolatedTime
     }
 }
