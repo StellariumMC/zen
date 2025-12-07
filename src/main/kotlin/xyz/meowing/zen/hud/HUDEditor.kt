@@ -83,7 +83,11 @@ class HUDEditor : KnitScreen("HUD Editor") {
     }
 
     override fun onMouseClick(mouseX: Int, mouseY: Int, button: Int): Boolean {
-        val hovered = HUDManager.elements.values.firstOrNull { it.isHovered(mouseX.toFloat(), mouseY.toFloat()) }
+        val hovered = HUDManager.elements
+            .filter { it.value.enabled }
+            .values
+            .firstOrNull { it.isHovered(mouseX.toFloat(), mouseY.toFloat()) }
+
         if (hovered != null) {
             dragging = hovered
             offsetX = mouseX.toFloat() - hovered.x
@@ -106,7 +110,10 @@ class HUDEditor : KnitScreen("HUD Editor") {
     }
 
     override fun onMouseScroll(horizontal: Double, vertical: Double) {
-        val hovered = HUDManager.elements.values.firstOrNull { it.isHovered(KnitMouse.Scaled.x.toFloat(), KnitMouse.Scaled.y.toFloat()) }
+        val hovered = HUDManager.elements
+            .filter { it.value.enabled }
+            .values
+            .firstOrNull { it.isHovered(KnitMouse.Scaled.x.toFloat(), KnitMouse.Scaled.y.toFloat()) }
 
         if (hovered != null) {
             val scaleDelta = if (vertical > 0) 0.1f else -0.1f
