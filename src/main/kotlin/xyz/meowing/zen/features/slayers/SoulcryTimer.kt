@@ -1,17 +1,13 @@
 package xyz.meowing.zen.features.slayers
 
 import net.minecraft.client.gui.GuiGraphics
-import xyz.meowing.knit.api.scheduler.TickScheduler
 import xyz.meowing.zen.annotations.Module
+import xyz.meowing.zen.api.item.ItemAbility
 import xyz.meowing.zen.events.core.GuiEvent
 import xyz.meowing.zen.events.core.SkyblockEvent
 import xyz.meowing.zen.features.Feature
 import xyz.meowing.zen.hud.HUDManager
 import xyz.meowing.zen.utils.Render2D
-import xyz.meowing.zen.utils.TimeUtils
-import xyz.meowing.zen.utils.TimeUtils.fromNow
-import xyz.meowing.zen.utils.TimeUtils.millis
-import kotlin.time.Duration.Companion.seconds
 
 @Module
 object SoulcryTimer : Feature(
@@ -22,22 +18,13 @@ object SoulcryTimer : Feature(
     true
 ) {
     private const val NAME = "Soulcry Timer"
-    private var startTime = TimeUtils.zero
-    private var active = false
 
     override fun initialize() {
-        HUDManager.register(NAME, "§c4.0s", "soulcryTimer")
+        HUDManager.register(NAME, "§cSoulcry: §c4.0s", "soulcryTimer")
 
         register<SkyblockEvent.ItemAbilityUsed> { event ->
             if (event.ability.abilityName.contains("Soulcry", ignoreCase = true)) {
-                startTime = 4.seconds.fromNow
-                active = true
                 registerEvent("render")
-                TickScheduler.Client.schedule(80) {
-                    startTime = TimeUtils.zero
-                    active = false
-                    unregisterEvent("render")
-                }
             }
         }
 
@@ -58,11 +45,13 @@ object SoulcryTimer : Feature(
     }
 
     private fun getDisplayText(): String {
-        if (active && startTime.isInFuture) {
-            val timeLeft = startTime.until
-            val timeLeftInSeconds = timeLeft.millis / 1000.0
-            return "Soulcry: §c${"%.1f".format(timeLeftInSeconds)}s"
+        val timeLeftInSeconds = ItemAbility.getRemaining("Soulcry")
+
+        if (timeLeftInSeconds > 0.0) {
+            return "§cSoulcry: §c${"%.1f".format(timeLeftInSeconds)}s"
         }
+        unregisterEvent("render")
+
         return ""
     }
 }
