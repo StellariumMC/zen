@@ -27,7 +27,7 @@ object Zen : ClientModInitializer {
     const val GITHUB_REPO = "StellariumMC/zen"
 
     @JvmStatic
-    val modInfo = KnitModInfo("zen", "Zen", "1.2.1")
+    val modInfo = KnitModInfo("zen", "Zen", "1.3.0")
 
     @JvmStatic
     val prefix = "§7[§bZen§7]"
