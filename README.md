@@ -13,8 +13,8 @@
 <div align="center"><img src='https://i.imgur.com/0KOjr5l.png'/></div>
 
 
-<p align="center">The 1.21 Fabric version of Zen (Formerly MeowAddons)</p>
-<p align="center">Looking for the 1.8 version? https://github.com/StellariumMC/zen</p>
+<p align="center">THE qol mod for Hypixel SkyBlock</p>
+<p align="center">Modrinth: https://modrinth.com/mod/zenmod</p>
 
 <div align="center"><img src='https://i.imgur.com/0KOjr5l.png'/></div>
 
