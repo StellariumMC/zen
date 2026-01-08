@@ -66,9 +66,11 @@ object SlayerHUD : Feature(
         //#if MC >= 1.21.7
         //$$ matrices.pushMatrix()
         //$$ matrices.translate(x, y)
+        //$$ matrices.scale(scale, scale)
         //#else
         matrices.pushPose()
         matrices.translate(x, y, 0f)
+        matrices.scale(scale, scale, 1f)
         //#endif
 
         val hpWidth = hpText.string.removeFormatting().width()
