@@ -22,7 +22,7 @@ object TitleUtils {
     private var startTime = TimeUtils.zero
 
     init {
-        EventBus.register<GuiEvent.Render.HUD.Post> { render(it.context) }
+        EventBus.register<GuiEvent.Render.HUD.Pre> { render(it.context) }
     }
 
     fun showTitle(title: String?, subtitle: String?, duration: Int, scale: Float = 4.0f) {
